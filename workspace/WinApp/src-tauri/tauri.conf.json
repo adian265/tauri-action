@@ -22,7 +22,7 @@
         "icons/icon.ico"
       ],
       "resources": ["../dist/*","../dist/HTML/**"],
-      "externalBin": ["../dist/run.bat"],
+      "externalBin": ["../dist/run"],
       "copyright": "",
       "category": "DeveloperTool",
       "shortDescription": "",
@@ -53,7 +53,7 @@
       "shell": {
         "sidecar": true,
         "scope": [
-          { "name": "../dist/run.bat", "sidecar": true }
+          { "name": "../dist/run", "sidecar": true }
         ]
       }
     },
