@@ -1,0 +1,142 @@
+<!--
+ * @Author: LY
+ * @Date: 2024-09-04 13:15:15
+ * @LastEditors: LY
+ * @LastEditTime: 2024-09-13 20:43:36
+ * @FilePath: /ModbusWebPRO/HTML/sensor.html
+ * @Description:  
+-->
+<!DOCTYPE html>
+<html class="x-admin-sm">
+<head>
+    <meta charset="UTF-8">
+    <title id="id_title">探测器</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport"
+          content="width=device-width,user-scalable=yes, minimum-scale=0.4, initial-scale=0.8"/>
+    <link rel="stylesheet" href="/css/font.css">
+    <link rel="stylesheet" href="/css/setting.css">
+    <link rel="stylesheet" href="/lib/layui/css/layui.css" media="all">
+    <script src="/lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/js/xadmin.js"></script>
+    <script type="text/javascript" src="/js/cfg.js"></script>
+    <script src="/js/myfunc.js"></script>
+    <script  src="/js/tpl_title.js"></script>
+
+    <!-- 让IE8/9支持媒体查询，从而兼容栅格 -->
+    <!--[if lt IE 9]>
+    <script src="https://cdn.staticfile.org/html5shiv/r29/html5.min.js"></script>
+    <script src="https://cdn.staticfile.org/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+<div class="layui-fluid" style="background-color:rgba(255,255,255,0.3);">
+    <div class="layui-row" >
+        <fieldset class="layui-elem-field layui-field-title" style="margin-top: 5px;color:coral;">
+            <legend class="layui-icon" id="title_name"></legend>
+        </fieldset>
+        <form class="layui-form" >
+        <div  style="place-items:center; width: 50%;display: flex;padding-left: 25%;">
+            <label class="layui-form-label" style="width: 100px;">探测器类型</label>
+            <select id="par" name="par" lay-filter="par" value="0" style="place-items:center; width: 100%;">
+                <option value="0">余压</option>
+                <option value="1">CO</option>
+                <option value="2">温度</option>
+                <option value="3">湿度</option>
+                <option value="4">CO2</option>
+                <option value="5">甲醛</option>
+                <option value="6">TVOC</option>
+                <option value="7">PM1.0</option>
+                <option value="8">PM2.5</option>
+                <option value="9">PM10</option>
+            </select>
+        </form>
+        </div>
+    </div>
+    <div class="layui-row">
+        <table class="layui-table" id="snr_list" lay-filter="snr_list"></table>
+    </div>
+</div>
+
+<script>
+    var flag_buf = ['绝压','表压','差压','温度','湿度','CO','CO2','甲醛','TVOC','PM1','PM2.5','PM10']
+    var flag_n = 12
+  
+    layui.use(['table', 'form', 'layer' , 'jquery'],function () {
+        $ = layui.jquery;
+        var form = layui.form,
+            layer = layui.layer;
+        // var fun = myfunc;
+        var table = layui.table
+        var ctl_id = getQueryVariable("ctl_id")
+        var loop_n = getQueryVariable("loop")
+        var snr_type = 0; //获取选中项的value值
+        // var snr_type = document.getElementById("par").value;
+        form.render();
+        table.render({
+            elem: '#snr_list'
+            , url: '/snr/getdata' //数据接口
+            , loading: true
+            , size: 'lg'
+            , id: 'snr_list'
+            , page: true
+            , method: 'GET'
+            , where:{loop:loop_n,ctl_id:ctl_id,snr_type:snr_type}
+            , initSort: {
+                field: 'idx' //排序字段，对应 cols 设定的各字段名
+                , type: 'asc' //排序方式  asc: 升序、desc: 降序、null: 默认排序
+            }
+            ,data: []
+            , page: {
+                layout: ['prev', 'page', 'next', 'count', 'limit']//自定义布局顺序
+                , limit: 10	//初始  每页几条数据
+                , limits: [10, 20]	//可以选择的 每页几条数据
+                , groups: 10 	//最多几个跳页按钮
+                , first: false //不显示首页
+                , last: false //不显示尾页
+            }
+            , cols: [[ //表头
+                  {field: 'idx', title: 'ID', align: 'center', minWidth: 20,templet: function(d){
+                    return d.LAY_NUM
+                }}
+                , {field: 'id', title: '物理ID', align: 'center', minWidth: 20}
+                , {field: 'sta', title: '状态', align: 'center', minWidth: 80,templet: function(d){
+                    var sta = parseInt(d.sta);
+                    console.log(d)
+                    return sta.toString(16)+'H'
+                }}
+                , {field: 'value', title: '数据', align: 'center', minWidth: 40,templet: function(d){
+                        var str = d.value
+                        if (d.sta == "1" || d.sta == "2"){
+                            str = '<span style="color:red">'+str+'</span>'
+                        }
+                        return str
+                }}
+            ]]
+        });
+       
+        setInterval(function(){
+            snr_type = GetOption()
+            table.reloadData('snr_list',{where:{loop:loop_n,ctl_id:ctl_id,snr_type:snr_type}})
+        }, 5000); // 每隔1秒执行一次
+        form.on('select(par)', function(d){
+            snr_type = d.value;
+            table.reloadData('snr_list',{where:{loop:loop_n,ctl_id:ctl_id,snr_type:snr_type}})
+        });
+        function GetOption(){
+            var selectElement = document.getElementById('par'); //选择下拉框元素
+            snr_type = selectElement.value; //获取选中项的value值
+            console.log("st",snr_type)
+            return snr_type
+        }
+        
+        //监听提交
+
+        
+    });
+    
+</script>
+</body>
+</html>

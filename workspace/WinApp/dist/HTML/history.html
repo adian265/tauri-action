@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html class="x-admin-sm">
+
+<head>
+    <meta charset="UTF-8">
+    <title>历史记录</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport"
+          content="width=device-width,user-scalable=yes, minimum-scale=0.4, initial-scale=0.8"/>
+    <link rel="stylesheet" href="/css/font.css">
+    <link rel="stylesheet" href="/css/xadmin.css">
+    <link rel="stylesheet" href="/css/history.css">
+    <script src="/lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/js/xadmin.js"></script>
+    <script type="text/javascript" src="/js/myfunc.js"></script>
+
+    <script  src="/js/cfg.js"></script>
+    <!--[if lt IE 9]>
+    <script src="https://cdn.staticfile.org/html5shiv/r29/html5.min.js"></script>
+    <script src="https://cdn.staticfile.org/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <style>
+        .layui-table thead span {
+            /*background-color: #acd3ed;*/
+            font-size: 15px;
+        }
+
+        .layui-table tbody tr td div {
+            font-size: 14px;
+        }
+
+        .layui-table tbody tr:hover {
+            background-color: #d3f7cd;
+        }
+
+        .layui-table tbody tr:hover td div {
+            font-size: 18px;
+        }
+        .nav-bg{
+            background-color:rgb(220, 240, 240);
+        }
+        .layui-nav-item .layui-this a  {
+            background-color:rgb(169, 203, 253);
+        }
+        .layui-nav-item .layui-this a:hover  {
+            background-color:rgb(129, 146, 189);
+        }
+    </style>
+</head>
+
+<body class="layui-anim layui-anim-scale flag" style="display: block;background-color: aliceblue;min-height: 900px;">
+    <div class="layui-fluid"></div>
+        <div class="layui-row layui-col-space15">
+            <div class="layui-col-md12">
+                <div class="layui-card" style="border-radius: 20px;">
+                    <div class="layui-card-body"
+                        style="background-image: linear-gradient(#f6e4f7,#ffffff , #f6e4f7);border-radius: 20px;">
+                            <div class="layui-inline layui-show-xs-block"></div>
+                                <button class="layui-btn layui-btn-normal" lay-submit="" lay-filter="his_down">
+                                    <i class="layui-icon">&#xe601;</i>下载历史记录
+                                </button>
+                                <button class="layui-btn layui-btn-danger" lay-submit="" lay-filter="his_clr">
+                                    <i class="layui-icon">&#xe788;</i>清除历史记录
+                                </button>
+                            </div>
+                        <!-- </form> -->
+                        <table class="layui-table" id="list" lay-filter="list"></table>
+                    </div>
+    
+                </div>
+            </div>
+        </div>
+    </div>
+    <a href="" id="down_csv"></a>
+</body>
+<script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-normal"
+       lay-event="wave">曲线</a>
+</script>
+<script type="text/html" id="barDemo_del">
+    <a class="layui-btn layui-btn-normal layui-btn-danger  "
+       lay-event="del_one">删除</a>
+</script>
+<script type="text/html" id="barDemo_ext">
+    <a class="layui-btn  layui-btn-checked "
+       lay-event="ext">导出</a>
+</script>
+<script type="text/html" id="titleTpl">
+    <i>******</i>
+</script>
+<script>
+    var res_data
+    var token = localStorage.getItem("token")
+    var dev_ip = [];
+    var dev_n = 0
+    layui.use(['table', 'form', 'jquery', 'layer'], function () {
+        var $ = layui.jquery;
+        var table = layui.table;
+        var form = layui.form;
+        var layer = layui.layer;
+        var dev_token = [];
+        
+        table.render({
+            elem: '#list'
+            , url: master_url+'/history/get_list'
+            , loading: true
+            , id: 'table_list'
+            , size: 'lg'
+            , method: 'GET'
+            , limit: '5'
+            , autoSort:true
+            , where:{ver:'1'}
+            , initSort: {
+                field: 'time' //排序字段，对应 cols 设定的各字段名
+                , type: 'desc' //排序方式  asc: 升序、desc: 降序、null: 默认排序
+            }
+            , page: {
+                curr: 1,
+                layout: ['prev', 'page', 'next', 'count', 'limit']//自定义布局顺序
+                , limit: 10	//初始  每页几条数据
+                , limits: [10, 20, 50]	//可以选择的 每页几条数据
+                , groups: 6 	//最多几个跳页按钮
+                , first: '首页' //不显示首页
+                , last: '尾页' //不显示尾页
+            }
+            , cols: [[ //表头
+            {type: 'checkbox', width: 50},
+                  {field: 'id', title: '编号', align: 'center', minWidth: 120}
+                , {field: 'status', title: '历史记录', minWidth: 40, align: 'center'}
+                , {field: 'time', title: '时间',  minWidth: 140, 
+                    templet: function(d){
+                        return timestampToTime(d.time / 1000)
+                    }
+                }
+            ]]
+            
+        });
+        
+        table.on('toolbar(list)', function (obj) {;
+            var checkStatus = table.checkStatus(obj.config.id);
+            if (obj.event === 'del') {
+                var dat = checkStatus.data
+                console.log(dat,dat.length);
+                layer.confirm('确定要删除这些数据吗？', {
+                        title: '提示',
+                        shade: [0.7, '#dc7069'],
+                        cancel: function () {
+                                    layer.msg('您取消了操作', {time: 600});
+                                }
+                    }, function (index) {
+                        var del_list = []
+                        for (i = 0;i < dat.length;i ++)
+                        {
+                            var d_one = {name:'TMP'+dat[i].time,ch:dat[i].ch};
+                            console.log("d_one:",d_one)
+                            del_list.push(d_one);
+                        }
+                        console.log(del_list)
+                        DelData(del_list);
+                        layer.close(index);
+                    })  
+                
+            } 
+        });
+        form.on('submit(his_down)', function (data) {
+            $.ajax({
+                type:"GET",
+                url:master_url+'/history/export',
+                success: function (msg) {
+                    console.log(msg)
+                    if (msg.code == 0) {
+                        window.location.href = master_url+'/history/down?file='+msg.file;
+                        layer.alert(msg.msg, {icon: 1});
+                    } else {
+                        layer.alert(msg.msg, {icon: 7});
+                    }
+                },
+                error: function (msg) {
+                    console.log(msg)
+                    // layer.close(load);
+                    layer.alert('数据提交失败，请联系后台管理员！', {icon: 2})
+                }    
+            });
+        });
+        form.on('submit(his_clr)', function (data) {
+            layer.confirm('确定要清除历史记录吗？', {
+                title: '提示',
+                shade: [0.7, '#dc7069'],
+                cancel: function () {
+                            layer.msg('您取消了操作', {time: 600});
+                        }
+            }, function (index) {
+                $.ajax({
+                    type:"GET",
+                    url:master_url+'/history/clr',
+                    success: function (msg) {
+                        console.log(msg)
+                        if (msg.code == 0) {
+                            layer.alert('历史记录已清除', {icon: 1});
+                            table.reload('table_list')
+                        } else {
+                            layer.alert('数据提交失败，请联系后台管理员！', {icon: 7});
+                        }
+                    },
+                    error: function (msg) {
+                        console.log(msg)
+                        // layer.close(load);
+                        layer.alert('数据提交失败，请联系后台管理员！', {icon: 2})
+                    }    
+                });
+                layer.close(index);
+            })  
+            
+        });
+        //动态显示
+        // parent.layui.notice.remove();
+        // parent.layui.notice.info('用户管理界面', '已进入', parent.noticeOpt1);
+        $('.flag').show();
+        function ExtData(dat){
+            console.log("dat",dat.name,dat.ch)
+            $.ajax({
+                type:"POST",
+                url:"/getcsv",
+                data:{
+                    u:"http://"+dev_ip[dev_n]+":8086/api/v2/query?org=test",
+                    name:dat.name,
+                    ch:dat.ch,
+                    tk:dev_token[dev_n]
+                },
+                success: function (msg) {
+                    console.log(msg)
+                    if (msg.code == 0) {
+                        //刷新父页面
+                        download(msg.data, dat.name+'.csv', 'text/plain')
+                        
+                    } else {
+                        layer.alert(msg.msg, {icon: 7});
+                    }
+                },
+                error: function (msg) {
+                    console.log(msg)
+                    // layer.close(load);
+                    layer.alert('数据提交失败，请联系后台管理员！', {icon: 2})
+                }    
+            });
+        }
+        function DownFile(file_name){
+            $.ajax({
+                type:"GET",
+                headers:{
+                    "Accept": "application/ocet-stream" 
+                },
+                url:master_url+'history/down',
+                data:{
+                    file:file_name,
+                },
+                success: function (msg) {
+                    console.log(msg)
+                    if (msg.code == 0) {
+                        //刷新父页面
+                        
+                    } else {
+                        layer.alert(msg.msg, {icon: 7});
+                    }
+                },
+                // error: function (msg) {
+                //     console.log(msg)
+                //     // layer.close(load);
+                //     layer.alert('数据提交失败，请联系后台管理员！', {icon: 2})
+                // }
+            });
+        }
+        function download(text, name, type) {
+            var a = document.getElementById("down_csv");
+            var file = new Blob([text], {type: type});
+            a.href = URL.createObjectURL(file);
+            a.download = name;
+            a.dispatchEvent(new MouseEvent('click', {'bubbles': false, 'cancelable': true}));
+        }
+        function ExtData1(dat){
+            console.log("dat",dat.name,dat.ch)
+            $.ajax({
+                type:"POST",
+                headers:{
+                    "Authorization": "Token "+dev_token[dev_n],
+                    "Content-Type": "application/vnd.flux",
+                    "Accept": "application/csv" 
+                },
+                url:"http://"+dev_ip[dev_n]+":8086/api/v2/query?org=test",
+                data:'from(bucket: "test")\
+                        |> range(start: -60d)\
+                        |> filter(fn: (r) => r["_field"] == "delay")\
+                        |> filter(fn: (r) => r["_measurement"] == "'+dat.name+'")\
+                        |> filter(fn: (r) => r["tb"] == "CH'+dat.ch+'")',
+                success: function (msg) {
+                    console.log(msg)
+                    if (msg.code == 0) {
+                        //刷新父页面
+                        
+                    } else {
+                        layer.alert(msg.msg, {icon: 7});
+                    }
+                },
+                error: function (msg) {
+                    console.log(msg)
+                    // layer.close(load);
+                    layer.alert('数据提交失败，请联系后台管理员！', {icon: 2})
+                }
+            });
+        }
+        function DelData(dat){
+            console.log("dat",dat)
+            $.ajax({
+                type:"POST",
+                url:"http://"+dev_ip[dev_n]+":8100/client/deldata",
+                data:{
+                    list:JSON.stringify(dat)
+                },
+                success: function (msg) {
+                    console.log(msg)
+                    if (msg.code == 0) {
+                        //刷新父页面
+                        setTimeout(function () {
+                            table.reloadData('table_list',{url:'http://'+dev_ip[dev_n]+':8100/client/getmaindatalist'}) ;
+                        }, 600);
+                    } else {
+                        layer.alert(msg.msg, {icon: 7});
+                    }
+                },
+                error: function (msg) {
+                    console.log(msg)
+                    // layer.close(load);
+                    layer.alert('数据提交失败，请联系后台管理员！', {icon: 2})
+                }
+            });
+        }
+
+    });
+    function timestampToTime(timestamp) {
+            // console.log(timestamp)
+            var date = new Date(timestamp*1000);//时间戳为10位需*1000，时间戳为13位的话不需乘1000
+            var Y = date.getFullYear() + '-';
+            var M = (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1) + '-';
+            var D = (date.getDate() < 10 ? '0' + date.getDate() : date.getDate()) + ' ';
+            var h = (date.getHours() < 10 ? '0' + date.getHours() : date.getHours()) + ':';
+            var m = (date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes()) + ':';
+            var s = (date.getSeconds() < 10 ? '0' + date.getSeconds() : date.getSeconds());
+            return Y + M + D + h + m + s;
+        }
+
+</script>
+
+</html>

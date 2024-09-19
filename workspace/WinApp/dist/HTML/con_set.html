@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html class="x-admin-sm">
+<head>
+    <meta charset="UTF-8">
+    <title id="id_title">控制器设备设置</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport"
+          content="width=device-width,user-scalable=yes, minimum-scale=0.4, initial-scale=0.8"/>
+    <link rel="stylesheet" href="/css/font.css">
+    <link rel="stylesheet" href="/css/setting.css">
+    <link rel="stylesheet" href="/lib/layui/css/layui.css" media="all">
+    <script src="/lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/js/xadmin.js"></script>
+    <script src="/js/myfunc.js"></script>
+    <script type="text/javascript" src="/js/cfg.js"></script>
+
+    <!-- 让IE8/9支持媒体查询，从而兼容栅格 -->
+    <!--[if lt IE 9]>
+    <script src="https://cdn.staticfile.org/html5shiv/r29/html5.min.js"></script>
+    <script src="https://cdn.staticfile.org/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+<div class="layui-fluid" style="background-color:rgba(255,255,255,0.3);">
+    <div class="layui-row">
+        <fieldset class="layui-elem-field layui-field-title" style="margin-top: 5px;color:coral;">
+            <legend class="layui-icon" id="title_name"></legend>
+        </fieldset>
+        <form class="layui-form" style="font-size: 14px;align-self: center;">
+            <div class="layui-form-item" >
+                <div class="layui-inline" style="width: 80%; margin-left: 10%;">
+                    <label class="layui-form-label" style="width: 100px;">控制器回路</label>
+                    <div class="layui-input-inline" style="width: 100px;">
+                        <select id="loop" name="loop" lay-filter="loop" value="1">
+                            <option value="1">回路1</option>
+                            <option value="2">回路2</option>
+                        </select>
+                    </div>
+                    <label class="layui-form-label" style="width: 100px;">起始控制器ID</label>
+                    <div class="layui-input-inline" style="width: 100px;">
+                        <input id="id_start" type="number" lay-affix="number" step="1"  name="id_start" lay-verify="required|id_start" autocomplete="off" 
+                        placeholder="起始ID，1～127" class="layui-input" value="1">
+                    </div>
+                    <label class="layui-form-label" style="width: 100px;">结束控制器ID</label>
+                    <div class="layui-input-inline" style="width: 100px;">
+                        <input id="id_end" type="number" lay-affix="number" step="1"  name="id_end" lay-verify="required|id_end" autocomplete="off" 
+                        placeholder="结束ID，1～127" class="layui-input" value="1">
+                    </div>
+                </div>
+            </div>
+            <div class="layui-form-item" style="width: 50%; padding-top: 2%;padding-left: 25%;">
+                <button type="button" lay-submit class="layui-btn layui-btn-fluid" style="font-family:黑体;font-size:16px;height: 50px;border-radius: 15px;" 
+                    lay-filter="sub_button">
+                        新 增
+                </button>
+            </div>
+        </form>
+    </div>
+    <div class="layui-row">
+        <table class="layui-table" id="ctl_list" lay-filter="ctl_list"></table>
+    </div>
+    <div class="layui-row">
+        <button type="button" lay-submit class="layui-btn layui-btn-fluid" style="font-family:黑体;font-size:16px;height: 50px;border-radius: 15px;" 
+        lay-filter="sub_insert">
+            提 交 更 改
+    </button>
+    </div>
+</div>
+<script type="text/html" id="del_one">
+    <button type="button" lay-event="del" name="del_one_btn" id="del_one_btn" class="layui-btn layui-bg-red layui-btn-fluid" style="width: 70px;">
+    删除
+    </button> 
+
+</script>
+<script type="text/html" id="del_all">
+    <button type="button" lay-event="del" name="del_all_btn" id="del_all_btn" class="layui-btn layui-btn-danger layui-icon layui-icon-delete layui-btn-fluid" style="width: 100px;">
+    删除
+    </button> 
+</script>
+<script>
+    layui.use(['table', 'form', 'layer' , 'jquery'],function () {
+        $ = layui.jquery;
+        var form = layui.form,
+            layer = layui.layer;
+        // var fun = myfunc;
+        var table = layui.table
+        var ctl_data = [];
+        form.render();
+        //自定义验证规则
+        form.verify({
+            start_id: function (value) {
+                if (value < 1 || value > 127 )
+                {
+                    return '起始ID，1～127'
+                }
+            },
+            end_id: function (value) {
+                if (value < 1 || value > 127)
+                {
+                    return '结束ID，1～127'
+                }
+            },
+        });
+        table.render({
+            elem: '#ctl_list'
+            , loading: true
+            , size: 'lg'
+            , id: 'ctl_list'
+            // ,page:true
+            , initSort: {
+                field: 'id' //排序字段，对应 cols 设定的各字段名
+                , type: 'asc' //排序方式  asc: 升序、desc: 降序、null: 默认排序
+            }
+            ,data: ctl_data
+            , page: {
+                layout: ['prev', 'page', 'next', 'count', 'limit']//自定义布局顺序
+                , limit: 5	//初始  每页几条数据
+                , limits: [5,10, 20]	//可以选择的 每页几条数据
+                , groups: 10 	//最多几个跳页按钮
+                , first: false //不显示首页
+                , last: false //不显示尾页
+            }
+            , cols: [[ //表头
+                {type: 'checkbox', width: 50,sort: true}
+                , {field: 'id', title: 'ID', align: 'center', minWidth: 20, sort: true,templet: function(d){
+                        var str = GetIdString(d.id)
+                        return str
+                }}
+                , {field: 'name', title: '位置', minWidth: 140, align: 'center',edit:true,}
+                , {field: 'operation', title: '操作', width: 80, align: 'center', fixed: 'right', toolbar: '#del_one'}
+            ]]
+            , toolbar: '#del_all'
+
+        });
+        table.on('edit(ctl_list)', function(obj){
+            var data = obj.data; // 得到所在行所有键值
+            if (data.name.length > 20){
+                layer.msg('位置名称不能超过20个字符', {icon: 5});
+                str = data.name.substring(0,20)
+                dd = ctl_data
+                data.name = str
+                dd[obj.dataCache.LAY_NUM-1] = data
+                table.reloadData('ctl_list', { data: dd });
+            }
+        });
+        Get_Ctl();
+        function Get_Ctl(){
+            $.ajax({
+                type: "GET",
+                url: master_url+'/ctl/get_list?page=0&limit=256',
+                success: function (msg) {
+                    console.log(msg)
+                    if (msg.code == 0) {
+                        ctl_data = msg.data;
+                        table.reloadData('ctl_list', { data: ctl_data });
+                    } 
+                },
+                error: function () {
+                    
+                }
+            });
+        };
+        //监听提交
+        form.on('submit(sub_button)',
+        function (e) {
+            var data = e.field;
+            var mul = (0);
+            if (data.loop == "2") {
+                mul = (128);
+            }
+            var start = parseInt(mul) + parseInt(data.id_start);
+            var end = parseInt(mul) + parseInt(data.id_end) ;
+            console.log(start, end);
+            dd = ctl_data;
+            for (var i = start; i <= end; i++) {
+                isFind = false;
+                for (var j = 0; j < dd.length; j++) {
+                    if (dd[j].id == i) {
+                        isFind = true;
+                        break;
+                    }
+                }
+                if (!isFind) {
+                    var obj = {
+                        id: i,
+                        operation: ''
+                    }
+                    dd.push(obj);
+                }
+            }
+            dd.sort((a,b)=>a.id-b.id);
+            table.reloadData('ctl_list', { data: dd });
+            return false;
+        });
+        table.on('tool(ctl_list)', function (obj) {
+            var idx = obj.dataCache.LAY_NUM - 1;
+            console.log(obj);
+            if (obj.event === 'del') {
+                dd = ctl_data;
+                dd.splice(idx, 1);
+                table.reloadData('ctl_list', { data: dd });
+            } 
+        });
+        table.on('toolbar(ctl_list)', function (obj) {;
+            var checkStatus = table.checkStatus('ctl_list');
+            if (obj.event === 'del') {
+                var dat = checkStatus.data
+                layer.confirm('确定要删除这些配置吗？', {
+                    title: '提示',
+                    shade: [0.7, '#dc7069'],
+                    cancel: function () {
+                        layer.msg('您取消了操作', {time: 600});
+                    }
+                }, function (index) {
+                    dd = ctl_data;
+                    for (var i = 0; i < dat.length; i++) {
+                        console.log(dat[i].id, dd[i].id);
+                        for (var j = 0; j < dd.length; j++) {
+                            if (dat[i].id == dd[j].id) {
+                                dd.splice(j, 1);
+                                break;
+                            }
+                        }
+                    }
+                    table.reloadData('ctl_list', { data: dd });
+                    layer.close(index);
+                })  
+            
+            } 
+        });
+        form.on('submit(sub_insert)',
+        function (e) {
+            // console.log(data);
+            layer.confirm('确定要提交控制器配置吗？重新提交主机会重新巡检控制器！', {
+                    title: '提示',
+                    shade: [0.7, '#dc7069'],
+                    cancel: function () {
+                        layer.msg('您取消了操作', {time: 600});
+                    }
+                }, function (index) {
+                    var dat =  []
+                    for (i = 0; i < ctl_data.length; i++){
+                        dat.push({id:ctl_data[i].id,name:ctl_data[i].name})
+                    }
+                    layer.msg('提交中……', {time: 10000});
+                        var load = layer.load();
+                    $.ajax({
+                        type: "POST",
+                        url: master_url+"/ctl/insert",
+                        data:  JSON.stringify({data:dat}),
+                        success: function (msg) {
+                            layer.close(load);
+                            console.log(msg)
+                            if (msg.code == 0) {
+                                //刷新父页面
+                                layer.alert('控制器配置完成', {icon: 7});
+                                setTimeout(function () {
+                                    layer.close(load);
+                                    // 获得frame索引
+                                    var index = parent.layer.getFrameIndex(window.name);
+                                    parent.layer.close(index);
+                                }, 1500);
+                            } else {
+                                layer.alert(msg.msg, {icon: 2})
+                            }
+                        },
+                        error: function () {
+                            layer.alert('数据提交失败，请联系后台管理员！', {icon: 2})
+                        }
+                    });
+                })  
+            
+            return false;
+        });
+    });
+    
+</script>
+</body>
+</html>

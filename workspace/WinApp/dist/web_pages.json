@@ -1,0 +1,10 @@
+{
+    "pages":[
+        "/index",
+        "/device_list",
+        "/add_ctl",
+        "/sensor",
+        "/con_set",
+        "/history"
+    ]
+}

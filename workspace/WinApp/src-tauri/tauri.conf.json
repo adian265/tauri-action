@@ -1,0 +1,73 @@
+{
+  "build": {
+    "distDir": "../dist",
+    "devPath": "http://127.0.0.1:6200",
+    "beforeDevCommand": "",
+    "beforeBuildCommand": ""
+  },
+  "package": {
+    "productName": "ModbusMonitor",
+    "version": "1.0.0"
+  },
+  "tauri": {
+    "bundle": {
+      "active": true,
+      "targets": "all",
+      "identifier": "com.solutionqd.modbusmonitor",
+      "icon": [
+        "icons/32x32.png",
+        "icons/128x128.png",
+        "icons/128x128@2x.png",
+        "icons/icon.icns",
+        "icons/icon.ico"
+      ],
+      "resources": ["../dist/*","../dist/HTML/**"],
+      "externalBin": ["../dist/run.bat"],
+      "copyright": "",
+      "category": "DeveloperTool",
+      "shortDescription": "",
+      "longDescription": "",
+      "deb": {
+        "depends": []
+      },
+      "macOS": {
+        "frameworks": [],
+        "minimumSystemVersion": "",
+        "exceptionDomain": ""
+      },
+      "windows": {
+        "nsis": {
+          "compression": "zlib"
+        }
+      }
+    },
+    "updater": {
+      "active": true,
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDE5QzMxNjYwNTM5OEUwNTgKUldSWTRKaFRZQmJER1h4d1ZMYVA3dnluSjdpN2RmMldJR09hUFFlZDY0SlFqckkvRUJhZDJVZXAK"
+    },
+    "allowlist": {
+      "all": true,
+      "fs": {
+        "scope": ["$RESOURCE/*"]
+      },
+      "shell": {
+        "sidecar": true,
+        "scope": [
+          { "name": "../dist/run.bat", "sidecar": true }
+        ]
+      }
+    },
+    "windows": [
+      {
+        "title": "ModbusMonitor",
+        "width": 1000,
+        "height": 760,
+        "resizable": true,
+        "fullscreen": false
+      }
+    ],
+    "security": {
+      "csp": "default-src blob: data: filesystem: ws: http: https: 'unsafe-eval' 'unsafe-inline'"
+    }
+  }
+}

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html class="x-admin-sm">
+<head>
+    <meta charset="UTF-8">
+    <title>控制器列表</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport"
+          content="width=device-width,user-scalable=yes, minimum-scale=0.4, initial-scale=0.8"/>
+    <link rel="stylesheet" href="/css/font.css">
+    <link rel="stylesheet" href="/css/xadmin.css">
+    <link rel="stylesheet" href="/css/device_list.css">
+    <script src="/lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/js/xadmin.js"></script>
+    <script type="text/javascript" src="/js/myfunc.js"></script>
+
+    <script  src="/js/cfg.js"></script>
+    <script  src="/js/tpl_title.js"></script>
+    <!--[if lt IE 9]>
+    <script src="https://cdn.staticfile.org/html5shiv/r29/html5.min.js"></script>
+    <script src="https://cdn.staticfile.org/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <style>
+        .layui-table thead span {
+            /*background-color: #acd3ed;*/
+            font-size: 15px;
+        }
+
+        .layui-table tbody tr td div {
+            font-size: 14px;
+        }
+
+        .layui-table tbody tr:hover {
+            background-color: #d3f7cd;
+        }
+
+        .layui-table tbody tr:hover td div {
+            font-size: 18px;
+        }
+        .layui-badge-dot-my{width:25px;height:25px;padding:0;border-radius:50%;margin:10px;top:50%;display: inline-block;}
+        .layui-bg-gray-my{background-color:#989898!important;color:#5f5f5f!important}
+    </style>
+</head>
+
+<body class="layui-anim layui-anim-scale flag" style="background-color: aliceblue;height: 600px;">
+    <div class="layui-fluid">
+        <div class="layui-row layui-col-space15">
+            <div class="layui-col-md12">
+                <div class="layui-card" style="border-radius: 20px;">
+                    <div class="layui-card-body"
+                        style="background-image: linear-gradient(#f6e4f7,#ffffff , #f6e4f7);border-radius: 20px;">
+                        <div class="layui-row">
+                        <table id="ctl_main" lay-filter="clt_main" style="height: 20%;"></table>
+                        </div>
+                        <div class="layui-row">
+                            <div class="layui-col-md6" style="border: #5f5f5f 1px solid;">
+                                <div class="layui-row">
+                                    <div class="layui-col-md5"> </div>
+                                    <div  style="text-align: center;font-size: large;color: blueviolet;">回路1</div>
+                                    <div class="layui-col-md5"> </div>
+                                </div>
+                                <table id="ctl_l1" lay-filter="ctl_l1" style="height: 80%;"></table>
+                            </div>
+                            <div class="layui-col-md6" style="border: #5f5f5f 1px solid;">
+                                <div class="layui-row">
+                                    <div class="layui-col-md5"> </div>
+                                    <div  style="text-align: center;font-size: large;color: blueviolet;">回路2</div>
+                                    <div class="layui-col-md5"> </div>
+                                </div>
+                                <table id="ctl_l2" lay-filter="ctl_l2" style="height: 80%;"></table>
+                            </div>
+                        </div>
+                    </div>
+    
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script type="text/html" id="titleTpl">
+    <i>******</i>
+</script>
+<script type="text/html" id="sensor">
+    <a class="layui-btn  layui-btn-checked "
+       lay-event="sensor_list">查 看</a>
+</script>
+
+<script>
+    var tpl = tpl_title[master_type];
+    layui.use(['table', 'form', 'jquery', 'layer'], function () {
+        var $ = layui.jquery;
+        var table = layui.table;
+        var form = layui.form;
+        var layer = layui.layer;
+        table.render({
+            elem: '#ctl_main'
+            , url: '/ctl/getmain' //数据接口
+            , loading: true
+            , size: 'lg'
+            , id: 'table_main'
+            , page:false       
+            , cols: [[ //表头
+            , {field: 'id',title: '回路', align: 'center', minWidth: 150,templet: function(d){
+                // console.log(d)
+                return d.LAY_NUM
+            }}
+            , {field: 'all_num', title: '控制器总数量', align: 'center', minWidth: 150}
+            , {field: 'online_num', title: '在线数量', align: 'center', minWidth: 150}
+            , {field: 'warn_num', title: '报警数量', align: 'center', minWidth: 150}
+            , {field: 'err_num', title: '故障数量', align: 'center', minWidth: 150}
+            ]]
+        });
+        table.render({
+            elem: '#ctl_l1'
+            , url: '/ctl/getdata' //数据接口
+            , loading: true
+            , size: 'lg'
+            , id: 'table_l1'
+            , page:true
+            , where:{loop:0}       
+            , cols: [[ //表头
+            , {field: 'id',title: 'ID', align: 'center', minWidth: 80,templet: function(d){
+                return d.LAY_NUM
+            }}
+            // , {field: 'idx', title: '状态', align: 'center', minWidth: 150}
+            , {field: 'sta', title: '状态', align: 'center', minWidth: 80,templet: function(d){
+                var sta = parseInt(d.sta);
+                return sta.toString(16)+'H'
+            }}
+            , {field: 'snr_num', title: '探测器数量', align: 'center', minWidth: 80}
+            , {field: 'snr_warn_num', title: '报警数量', align: 'center', minWidth: 80}
+            , {field: 'snr_err_num', title: '故障数量', align: 'center', minWidth: 80}
+            , {field: 'operation', title: '探测器', width: 80, align: 'center', fixed: 'right', toolbar: '#sensor'}
+            ]]
+        });
+        table.render({
+            elem: '#ctl_l2'
+            , url: '/ctl/getdata' //数据接口
+            , loading: true
+            , size: 'lg'
+            , id: 'table_l2'
+            , page:true
+            , where:{loop:1}       
+            , cols: [[ //表头
+            , {field: 'id',title: 'ID', align: 'center', minWidth: 80,templet: function(d){
+                return d.LAY_NUM
+            }}
+            // , {field: 'idx', title: '状态', align: 'center', minWidth: 150}
+            , {field: 'sta', title: '状态', align: 'center', minWidth: 80,templet: function(d){
+                var sta = parseInt(d.sta);
+                return sta.toString(16)+'H'
+            }}
+            , {field: 'snr_num', title: '探测器数量', align: 'center', minWidth: 80}
+            , {field: 'snr_warn_num', title: '报警数量', align: 'center', minWidth: 80}
+            , {field: 'snr_err_num', title: '故障数量', align: 'center', minWidth: 80}
+            , {field: 'operation', title: '探测器', width: 80, align: 'center', fixed: 'right', toolbar: '#sensor'}
+            ]]
+        });
+        $('.flag').show();
+
+        setInterval(function(){
+            table.reloadData('table_main')
+            table.reloadData('table_l1')
+            table.reloadData('table_l2')
+        }, 5000); // 每隔1秒执行一次
+
+        table.on('tool(ctl_l1)', function (obj) {
+            var d = obj.data;
+            if (obj.event === 'sensor_list') {
+                xadmin.open('[1-'+obj.dataCache.LAY_NUM+']','/sensor?loop=0&ctl_id='+obj.dataCache.LAY_NUM,1000, 800, window.screen.width)
+            } 
+        });
+        table.on('tool(ctl_l2)', function (obj) {
+            var d = obj.data;
+            if (obj.event === 'sensor_list') {
+                xadmin.open('[2-'+obj.dataCache.LAY_NUM+']','/sensor?loop=1&ctl_id='+obj.dataCache.LAY_NUM,1000, 800, window.screen.width)
+            } 
+        });
+        form.on('submit(sensor_list)', function (obj) {
+            // console.log(obj)
+            xadmin.open('控制器设备设置','/con_set',1000, 700, window.screen.width)
+        });
+    });   
+</script>
+
+</html>

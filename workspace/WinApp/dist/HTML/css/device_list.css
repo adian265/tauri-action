@@ -1,0 +1,66 @@
+
+
+
+.contain1 {
+    padding-top: 0;
+    min-height: 50px;
+    min-width: 800px;
+    font-size: 14px;
+}
+
+.ln {
+    min-width: 800px;
+    background-color:rgb(220, 240, 240);
+    display: block;
+    min-height: 150px;
+    padding: 5px;
+    font-size: 14px;
+    margin: 20px;
+}
+
+.item_name {
+    background-color:rgb(220, 240, 240);
+    float: left;
+    display: block;
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-top: 5px;
+    margin-left: 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    min-height: 130px;
+    width: 200px;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.item_net {
+    background-color:rgb(229, 229, 229);
+    display: block;
+    float: left;
+    align-self: center;
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-top: 5px;
+    margin-left: 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    min-height: 130px;
+    min-width: 130px;
+    border-radius: 5px;
+    text-align: center;
+}
+.item_net .title {
+    top:15%;
+    margin-top:10%;
+    padding:10px;
+    /* margin:10px,10px,10px,10px; */
+}
+.item_net .ip {
+    margin-top:10px;
+    color:blue;
+}
+.item_net .dat {
+    margin-top:10px;
+    color:darkgrey;
+}

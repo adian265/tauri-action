@@ -1,0 +1,191 @@
+<!doctype html>
+<html class="x-admin-sm">
+<head>
+    <meta charset="UTF-8">
+    <title>Modbus监控系统</title>
+    <meta name="renderer" content="webkit|ie-comp|ie-stand"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <meta name="viewport"
+          content="width=device-width,user-scalable=yes, minimum-scale=0.4, initial-scale=0.8"/>
+    <meta http-equiv="Cache-Control" content="no-siteapp"/>
+    <link rel="stylesheet" href="/css/font.css">
+    <link rel="stylesheet" href="/css/xadmin.css">
+    <link rel="stylesheet" href="/dist/notice.css">
+    <!-- <link rel="stylesheet" href="./css/theme5.css"> -->
+    <script src="/lib/layui/layui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="/js/xadmin.js"></script>
+
+    <!-- 让IE8/9支持媒体查询，从而兼容栅格 -->
+    <!--[if lt IE 9]>
+    <script src="https://cdn.staticfile.org/html5shiv/r29/html5.min.js"></script>
+    <script src="https://cdn.staticfile.org/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <script>
+        // 是否开启刷新记忆tab功能
+        var is_remember = false;
+    </script>
+    <style>
+        .layui-this > a {
+            background-color: #5c2d2d !important;
+        }
+    </style>
+</head>
+<body class="index">
+<!-- 顶部开始 -->
+<div class="container flag1" style="display: block">
+    <div class="logo">
+        <a href="/">Modbus监控系统</a>
+    </div>
+</div>
+<!-- 顶部结束 -->
+<!-- 主体开始 -->
+<div class="page-content">
+    <iframe id="show_page" name="show_page" width="100%" height="90%" frameborder="1" scrolling="yes" src="/device_list">
+    </iframe> 
+</div>
+
+<div class="page-content-bg"></div>
+<style id="theme_style"></style>
+<!-- 主体结束 -->
+<!-- 中部结束 -->
+<script id="logForm" type="text/html">
+    <div class="layui-fluid">
+        <input style="height: 45px" type="text" id="logInput" name="" placeholder="获取校验码后在此处输入定制的二级密码"
+               autocomplete="off"
+               class="layui-input">
+    </div>
+</script>
+<script>
+    function ShowDevice(){
+        document.getElementById('show_page').src = '/device_list';
+    }
+    function ShowConSet(){
+        document.getElementById('show_page').src = '/con_set';
+    }
+    function ShowHistory(){
+        document.getElementById('show_page').src = '/history';
+    }
+    //进入界面
+    var noticeOpt1 = {
+        showMethod: 'slideDown',
+        hideMethod: 'slideUp',
+        closeButton: false,//显示关闭按钮
+        positionClass: "toast-bottom-full-width",//弹出的位置,
+        showDuration: 300,//显示的时间
+        hideDuration: 400,//消失的时间
+        timeOut: 2000,//停留的时间
+        extendedTimeOut: 200,//控制时间
+    };
+    //二级密码校验码弹窗提示
+    var noticeOpt2 = {
+        showMethod: 'slideDown',
+        hideMethod: 'slideUp',
+        closeButton: false,//显示关闭按钮
+        positionClass: "toast-bottom-full-width",//弹出的位置,
+        showDuration: 300,//显示的时间
+        hideDuration: 300,//消失的时间
+        timeOut: 0,//停留的时间
+        extendedTimeOut: 0,//控制时间
+    };
+    //执行操作提示
+    var noticeOpt3 = {
+        showMethod: 'fadeIn',
+        hideMethod: 'fadeOut',
+        closeButton: false,//显示关闭按钮
+        positionClass: "toast-top-right",//弹出的位置,
+        showDuration: 300,//显示的时间
+        hideDuration: 300,//消失的时间
+        timeOut: 2000,//停留的时间
+        extendedTimeOut: 200,//控制时间
+    };
+    //操作成功提示
+    var noticeOpt4 = {
+        showMethod: 'slideDown',
+        hideMethod: 'fadeOut',
+        closeButton: false,//显示关闭按钮
+        positionClass: "toast-top-center",//弹出的位置,
+        showDuration: 300,//显示的时间
+        hideDuration: 300,//消失的时间
+        timeOut: 1900,//停留的时间
+        extendedTimeOut: 200,//控制时间
+    };
+    //操作失败提示
+    var noticeOpt5 = {
+        showMethod: 'slideDown',
+        hideMethod: 'slideUp',
+        closeButton: false,//显示关闭按钮
+        positionClass: "toast-top-full-width",//弹出的位置,
+        showDuration: 300,//显示的时间
+        hideDuration: 300,//消失的时间
+        timeOut: 1000,//停留的时间
+        extendedTimeOut: 200,//控制时间
+    };
+    //操作过程提示
+    var noticeOpt6 = {
+        showMethod: 'slideDown',
+        hideMethod: 'slideUp',
+        closeButton: false,//显示关闭按钮
+        positionClass: "toast-top-full-width",//弹出的位置,
+        showDuration: 300,//显示的时间
+        hideDuration: 300,//消失的时间
+        timeOut: 2000,//停留的时间
+        extendedTimeOut: 100,//控制时间
+        iconClass: 'layui-icon'
+    };
+    function Quit(){
+        localStorage.removeItem("token")
+        layer.msg('用户退出！', {
+            icon: 6,
+            time: 600,
+        });
+        // parent.location.reload();
+        setTimeout(function () {
+            location.href = '/login';
+        }, 1000);
+    };
+    layui.config({
+        base: '/dist/'
+    }).extend({
+        notice: 'notice'
+    });
+    layui.use(['notice', 'jquery', 'element', 'layer'], function () {
+        var notice = layui.notice; // 允许别名 
+        var element = layui.element;
+        var $ = layui.jquery;
+        var layer = layui.layer;
+        
+        // 初始化通知配置，同一样式只需要配置一次，非必须初始化，有默认配置
+        notice.options = {
+            showMethod: 'slideDown',
+            hideMethod: 'slideUp',
+            closeButton: true,//显示关闭按钮
+            debug: false,//启用debug
+            positionClass: "toast-bottom-full-width",//弹出的位置,
+            showDuration: 300,//显示的时间
+            hideDuration: 300,//消失的时间
+            timeOut: 1000,//停留的时间
+            extendedTimeOut: 0,//控制时间
+            showEasing: "swing",//显示时的动画缓冲方式swing为变速
+            // showEasing: "linear",//显示时的动画缓冲方式
+            hideEasing: "linear",//消失时的动画缓冲方式linear为匀速
+            iconClass: 'toast-info', // 自定义图标，有内置，如不需要则传空 支持layui内置图标/自定义iconfont类名
+            onclick: null, // 点击关闭回调
+        };
+        
+        //下滑出现操作界面
+        $(".flag1").slideDown("slow");
+        $(".flag2").slideDown("slow");
+        $(".flag3").fadeIn("slow");
+        //浮现我的桌面
+        setTimeout(function () {
+            // $("#showHome").removeClass("layui-hide");
+        }, 1500);
+
+
+    });
+
+</script>
+</body>
+
+
+</html>
