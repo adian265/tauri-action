@@ -1,4 +1,4 @@
-name: 'real world tests'
+name: 'new_win'
 
 on:
   workflow_dispatch:
